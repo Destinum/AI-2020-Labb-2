@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 import torch.optim as optim
 import random
-import Astar
+#import Astar
 import pytmx
 #from pytmx.util_pygame import load_pygame
 #import pygame as pg
@@ -150,6 +150,7 @@ net = Net()
 #Create train and test data
 train = CustomDataset(20)
 test = CustomDataset(20)
+
 #make them sets
 trainset = torch.utils.data.DataLoader(train, batch_size=100, shuffle=True)
 testset = torch.utils.data.DataLoader(test, batch_size=10, shuffle=False)

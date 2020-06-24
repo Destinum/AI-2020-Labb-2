@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>Labb 2</Name>
     <RootNamespace>Labb 2</RootNamespace>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +23,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Heuristic_Astar_3.py" />
+    <Compile Include="Neural_Network.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Main.py" />
+    <Compile Include="Test.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
