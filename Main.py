@@ -13,14 +13,15 @@ pygame.init()
 Window = pygame.display.set_mode((DisplayWidth, DisplayHeight))
 pygame.display.set_caption("AI Labb 2, Map 1")
 
-Map = open("Map1.txt", "r")
-#Map = open("Map2.txt", "r")
-#Map = open("Map3.txt", "r")
+MapNumber = str(2)
+Map = open("Map" + MapNumber + ".txt", "r")
 lines = Map.readlines()
 Map.close()
 
 Tiles = []
-NeuralNetworkTiles = []
+
+StartCoordinates = [0, 0]
+GoalCoordinates = [0, 0]
 
 TileSize = 10
 SmallTile = int(TileSize / 2)
@@ -30,8 +31,7 @@ DisplacementY = int(len(lines) * TileSize / 2)
 
 Window.fill((255, 255, 255))
 
-StartCoordinates = [0, 0]
-GoalCoordinates = [0, 0]
+NeuralNetworkGeneration = 1
 
 ########################################################################################################################
 
@@ -91,6 +91,7 @@ class AStar:
         return False
 
     def Run(self):
+        Path = []
         while (Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][0] != "G"):
             X = -1
             Y = -1
@@ -120,9 +121,14 @@ class AStar:
 
 
         while (self.CurrentCoordinates != StartCoordinates):
+            Path.insert(0, self.CurrentCoordinates)
             pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[0][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[0][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
             self.CurrentCoordinates = Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4]
+        
+        Path.insert(0, self.CurrentCoordinates)
         pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[0][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[0][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
+        
+        return Path
 
 
 ########################################################################################################################
@@ -303,50 +309,53 @@ TextSurf, TextRect = text_object("Neural Network", largeText)
 TextRect.midtop = (Displacement[3][0], Displacement[3][1] + DisplacementY + 4)
 Window.blit(TextSurf, TextRect)
 
+TextSurf, TextRect = text_object("Generation: " + str(NeuralNetworkGeneration), largeText)
+TextRect.midtop = (Displacement[3][0], Displacement[3][1] + DisplacementY + 20)
+Window.blit(TextSurf, TextRect)
+
 
 #StartCoordinates = [22, 4]
 
 TheAStar = AStar(StartCoordinates)
-TheAStar.Run()
+LastTime = time.process_time()
+ThePath = TheAStar.Run()
+CurrentTime = time.process_time()
+print("A* Runtime: ", CurrentTime - LastTime)
 
 TheBreadthFirst = BreadthFirst(StartCoordinates)
+LastTime = time.process_time()
 TheBreadthFirst.Run()
+CurrentTime = time.process_time()
+print("Breadth First Runtime: ", CurrentTime - LastTime)
 
 TheDepthFirst = DepthFirst(StartCoordinates)
+LastTime = time.process_time()
 TheDepthFirst.Run()
+CurrentTime = time.process_time()
+print("Depth First Runtime: ", CurrentTime - LastTime)
 
+#pygame.display.update()
+
+
+Population = InitialPopulation(SizeOfPopulation, MapNumber, StartCoordinates, GoalCoordinates)
+LastPopulation = Population
+GenePool = []
+
+LastTime = time.process_time()
+Population[0].Run()
+CurrentTime = time.process_time()
+print("Neural Network Runtime: ", CurrentTime - LastTime)
+
+
+DrawArea = Labyrinth.get_rect().move(Displacement[3][0] - DisplacementX, Displacement[3][1] - DisplacementY)
+Window.blit(Labyrinth, DrawArea)
+for Tile in Population[0].Path:
+    pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[3][0] - DisplacementX + TileSize * Tile[0] + SmallTile / 2), int(Displacement[3][1] - DisplacementY + TileSize * Tile[1] + SmallTile / 2), SmallTile, SmallTile))
 pygame.display.update()
 
-SizeOfPopulation = 200
 CurrentIndex = 0
-BestAgentSelection = 8
-WorstAgentSelection = 3
-
-def InitialPopulation(SizeOfPopulation):
-    TempList = []
-    for i in range(SizeOfPopulation):
-        WeightMatrix, Biases = RandomWeightsAndBiases(2, 1, 1, 10)
-        NN = NeuralNetwork(StartCoordinates, GoalCoordinates, NeuralNetworkTiles, WeightMatrix, Biases)
-        TempList.append(NN)
-    return TempList
-
-def PickBestPopulation(Population):
-    TempList = []
-
-    for i in range(BestAgentSelection):
-        TempList.append(Population[i])
-    for i in range(WorstAgentSelection):
-        TempList.append(Population[len(Population) - 1 - i])
-    """
-    while len(TempList) < len(Population):
-        WeightMatrix, Biases = RandomWeightsAndBiases(2, 1, 1, 10)
-        TempList.append(NeuralNetwork(StartCoordinates, GoalCoordinates, NeuralNetworkTiles, WeightMatrix, Biases))
-    """
-    return TempList
-
-Population = InitialPopulation(SizeOfPopulation)
-GenePool = []
 Paused = False
+Training = False
 Running = True
 while Running:
     for event in pygame.event.get():
@@ -360,10 +369,24 @@ while Running:
                 break
             elif (event.key == pygame.K_SPACE):
                 Paused = not Paused
+            elif (event.key == pygame.K_t):
+                Training = not Training
+                if(Training == False):
+                    CurrentIndex = 0
+                    DrawArea = Labyrinth.get_rect().move(Displacement[3][0] - DisplacementX, Displacement[3][1] - DisplacementY)
+                    Window.blit(Labyrinth, DrawArea)
+                    for Tile in LastPopulation[0].Path:
+                        pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[3][0] - DisplacementX + TileSize * Tile[0] + SmallTile / 2), int(Displacement[3][1] - DisplacementY + TileSize * Tile[1] + SmallTile / 2), SmallTile, SmallTile))
+                    pygame.display.update()
+
+            elif (event.key == pygame.K_s):
+                with open("Population" + MapNumber + ".txt", "wb") as PopulationFile:
+                    pickle.dump(LastPopulation, PopulationFile)
 
 
-    if Paused == False:
-        if (CurrentIndex < SizeOfPopulation):
+
+    if Paused == False and Training == True:
+        if (CurrentIndex < len(Population)):
             Population[CurrentIndex].Run()
             
             DrawArea = Labyrinth.get_rect().move(Displacement[3][0] - DisplacementX, Displacement[3][1] - DisplacementY)
@@ -376,37 +399,21 @@ while Running:
         
         else:
             Population = SortPopulation(Population)
-            GenePool = PickBestPopulation(Population)
+            LastPopulation = Population
+            #LastPopulation = copy.deepcopy(Population)
+            GenePool.clear()
+            BestPopulation = PickBestPopulation(Population, GenePool)
+            NewPopulation = []
             #Population = InitialPopulation(SizeOfPopulation)
+            Crossover(NewPopulation, GenePool, StartCoordinates, GoalCoordinates)
+            Mutate(NewPopulation)
+            for Network in BestPopulation:
+                NewPopulation.append(Network)
+            Population = NewPopulation
             CurrentIndex = 0
 
-
-
-
-    """
-    if Paused == False:
-        if(len(GenePool) > 0):
-        #if(len(GenePool) > 0) and 2 < 1:
-            RandomValue = random.randrange(0, 40, 1)
-            if (RandomValue == 0):
-                WeightMatrix, Biases = RandomWeightsAndBiases(2, 1, 1, 10)       #(NumberOfInputs, NumberOfOutputs, NumberOfHiddenLayers, NeuronsInLayer) 
-            else:
-                WeightMatrix, Biases = BreedNetworks(GenePool, 20)        #(NetworkList, MidpointIndex)
-        else:
-            WeightMatrix, Biases = RandomWeightsAndBiases(2, 1, 1, 10)       #(NumberOfInputs, NumberOfOutputs, NumberOfHiddenLayers, NeuronsInLayer)
-        NN = NeuralNetwork(StartCoordinates, GoalCoordinates, NeuralNetworkTiles, WeightMatrix, Biases)
-        NN.Run()
-        AddToNeuralNetworkList(NN, Population)
-        DrawArea = Labyrinth.get_rect().move(Displacement[3][0] - DisplacementX, Displacement[3][1] - DisplacementY)
-        Window.blit(Labyrinth, DrawArea)
-        for Tile in NN.Path:
-            pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[3][0] - DisplacementX + TileSize * Tile[0] + SmallTile / 2), int(Displacement[3][1] - DisplacementY + TileSize * Tile[1] + SmallTile / 2), SmallTile, SmallTile))
-        pygame.display.update()
-
-        if (len(Population) >= 200):
-            GenePool.clear()
-            for i in range(int(len(Population) * 0.2)):
-                GenePool.append(Population[i])
-            #Population.clear()
-            Population = copy.deepcopy(GenePool)
-    """
+            NeuralNetworkGeneration += 1
+            pygame.draw.rect(Window, (255, 255, 255), (Displacement[3][0] - DisplacementX - 20, Displacement[3][1] + DisplacementY + 20, 500, 20))
+            TextSurf, TextRect = text_object("Generation: " + str(NeuralNetworkGeneration), largeText)
+            TextRect.midtop = (Displacement[3][0], Displacement[3][1] + DisplacementY + 20)
+            Window.blit(TextSurf, TextRect)
