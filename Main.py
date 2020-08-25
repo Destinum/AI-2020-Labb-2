@@ -2,6 +2,11 @@ import pygame
 import time
 from Neural_Network import*
 
+MapNumber = input("Select which Map to run (1, 2 or 3): ")
+
+while MapNumber not in ("1", "2", "3"):
+    MapNumber = input("Not a valid input. Select which Map to run (1, 2 or 3): ")
+
 DisplayWidth = 1000
 DisplayHeight = 800
 Displacement = [[int(DisplayWidth / 4), int(DisplayHeight / 4)],
@@ -12,8 +17,6 @@ Displacement = [[int(DisplayWidth / 4), int(DisplayHeight / 4)],
 pygame.init()
 Window = pygame.display.set_mode((DisplayWidth, DisplayHeight))
 pygame.display.set_caption("AI Labb 2, Map 1")
-
-MapNumber = str(2)
 Map = open("Map" + MapNumber + ".txt", "r")
 lines = Map.readlines()
 Map.close()
@@ -113,12 +116,6 @@ class AStar:
             self.OpenList.remove(self.CurrentCoordinates)
             self.ClosedList.append(self.CurrentCoordinates)
 
-            
-            #pygame.draw.rect(Window, (255, 255, 255), ((Location[0] - DisplacementX + TileSize * i), (Location[1] - DisplacementY + TileSize * index), TileSize - 1, TileSize - 1))
-            #DisplacementX = (len(lines[0]) - 1) * TileSize / 2
-            #DisplacementY = len(lines) * TileSize / 2
-
-
 
         while (self.CurrentCoordinates != StartCoordinates):
             Path.insert(0, self.CurrentCoordinates)
@@ -154,7 +151,6 @@ class BreadthFirst:
         elif (Tiles[Y][X][0] != "X" and Tiles[Y][X][5] != "Visited"):
             
             if (BaseX != 0 and BaseY != 0):
-                #return False
                 if (Tiles[Y][self.CurrentCoordinates[0]][0] == "X" or Tiles[self.CurrentCoordinates[1]][X][0] == "X"):
                     return False
                 self.TempList.append([X, Y])
@@ -212,12 +208,8 @@ class DepthFirst:
 
 
     def CheckTile(self, BaseX, BaseY):      
-        
-        #X = BaseX + self.CurrentCoordinates[0]
-        #Y = BaseY + self.CurrentCoordinates[1]
 
         if (Tiles[BaseY][BaseX][0] == "G"):
-            #Tiles[BaseY][BaseX][4] = self.CurrentCoordinates
             self.CurrentCoordinates = [BaseX, BaseY]
             return True
 
@@ -314,8 +306,6 @@ TextRect.midtop = (Displacement[3][0], Displacement[3][1] + DisplacementY + 20)
 Window.blit(TextSurf, TextRect)
 
 
-#StartCoordinates = [22, 4]
-
 TheAStar = AStar(StartCoordinates)
 LastTime = time.process_time()
 ThePath = TheAStar.Run()
@@ -333,8 +323,6 @@ LastTime = time.process_time()
 TheDepthFirst.Run()
 CurrentTime = time.process_time()
 print("Depth First Runtime: ", CurrentTime - LastTime)
-
-#pygame.display.update()
 
 
 Population = InitialPopulation(SizeOfPopulation, MapNumber, StartCoordinates, GoalCoordinates)
@@ -400,11 +388,9 @@ while Running:
         else:
             Population = SortPopulation(Population)
             LastPopulation = Population
-            #LastPopulation = copy.deepcopy(Population)
             GenePool.clear()
             BestPopulation = PickBestPopulation(Population, GenePool)
             NewPopulation = []
-            #Population = InitialPopulation(SizeOfPopulation)
             Crossover(NewPopulation, GenePool, StartCoordinates, GoalCoordinates)
             Mutate(NewPopulation)
             for Network in BestPopulation:

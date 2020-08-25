@@ -52,10 +52,8 @@ class NeuralNetwork():
             for Neuron in range(len(self.Biases[Layer])):
                 for Weight in range(len(self.Biases[Layer - 1])):
                     HiddenLayers[Layer][Neuron] += HiddenLayers[Layer - 1][Weight] * self.WeightMatrix[Layer][Neuron][Weight]
-                    #HiddenLayers[Layer][Neuron] += HiddenLayers[Layer - 1][Neuron] * self.WeightMatrix[Layer][Neuron][Weight] #+ self.Biases[Layer][Neuron]
                 HiddenLayers[Layer][Neuron] = self.Sigmoid(HiddenLayers[Layer][Neuron])
 
-        #return([HiddenLayers[NumberOfLayers - 1][0], HiddenLayers[NumberOfLayers - 1][1]])
         return HiddenLayers[NumberOfLayers - 1]
 
     def DistanceToGoal(self, X, Y):
@@ -72,9 +70,6 @@ class NeuralNetwork():
         while True:
             self.Map[self.CurrentLocation[1]][self.CurrentLocation[0]][1] = 0               #Make Backtracking Impossible
             TheDistance = self.DistanceToGoal(self.CurrentLocation[0], self.CurrentLocation[1])
-            #Fisk = self.Sigmoid(TheDistance)
-            #Inputs = [self.Sigmoid(self.CurrentLocation[0]),
-                      #self.Sigmoid(self.CurrentLocation[1]),
             Inputs = [self.Sigmoid(TheDistance),
                       self.Map[self.CurrentLocation[1] - 1][self.CurrentLocation[0] - 1][1],
                       self.Map[self.CurrentLocation[1]][self.CurrentLocation[0] - 1][1],
@@ -84,8 +79,6 @@ class NeuralNetwork():
                       self.Map[self.CurrentLocation[1] - 1][self.CurrentLocation[0] + 1][1],
                       self.Map[self.CurrentLocation[1]][self.CurrentLocation[0] + 1][1],
                       self.Map[self.CurrentLocation[1] + 1][self.CurrentLocation[0] + 1][1]]
-            #NextTile = self.Sigmoid(self.Network(Inputs)[0])
-            #NextTile = self.Network(Inputs)[0]
 
             NetworkOutput = self.Network(Inputs)
             NextTile = 0
@@ -117,29 +110,6 @@ class NeuralNetwork():
                 XMove = 1
                 YMove = -1
 
-            """
-            if (NextTile < 0.125):
-                XMove = 1
-            elif (0.125 <= NextTile and NextTile < 0.25):
-                XMove = 1
-                YMove = 1
-            elif (0.25 <= NextTile and NextTile < 0.375):
-                YMove = 1
-            elif (0.375 <= NextTile and NextTile < 0.5):
-                XMove = -1
-                YMove = 1
-            elif (0.5 <= NextTile and NextTile < 0.625):
-                XMove = -1
-            elif (0.625 <= NextTile and NextTile < 0.75):
-                XMove = -1
-                YMove = -1
-            elif (0.75 <= NextTile and NextTile < 0.875):
-                YMove = -1
-            else:
-                XMove = 1
-                YMove = -1
-            """
-
             if (self.Map[self.CurrentLocation[1] + YMove][self.CurrentLocation[0] + XMove][1] == 0):
                 return self.ReturnFunction()
 
@@ -162,29 +132,25 @@ class NeuralNetwork():
 
 ################################################################################################################################################################################################################################################
 
-def RandomWeightsAndBiases(NumberOfInputs, NumberOfOutputs, NumberOfHiddenLayers, NeuronsInLayer):  #(9, 8, 2, 4)
+def RandomWeightsAndBiases(NumberOfInputs, NumberOfOutputs, NumberOfHiddenLayers, NeuronsInLayer):  #(9, 8, 2, 8)
     Weights = [[]]
     Biases = [[]]
 
 #random.uniform(-1.0, 1.0)
 
     for i in range(NeuronsInLayer):
-        #Biases[0].append(np.random.randn())
         Biases[0].append(random.uniform(-1.0, 1.0))
         Weights[0].append([])
         for f in range(NumberOfInputs):
-            #Weights[0][i].append(np.random.randn())
             Weights[0][i].append(random.uniform(-1.0, 1.0))
 
     for i in range(1, NumberOfHiddenLayers):
         Biases.append([])
         Weights.append([])
         for Neuron in range(NeuronsInLayer):
-            #Biases[i].append(np.random.randn())
             Biases[i].append(random.uniform(-1.0, 1.0))
             Weights[i].append([])
             for f in range(NeuronsInLayer):
-                #Weights[i][Neuron].append(np.random.randn())
                 Weights[i][Neuron].append(random.uniform(-1.0, 1.0))
 
     BiasesLastIndex = len(Biases)
@@ -192,11 +158,9 @@ def RandomWeightsAndBiases(NumberOfInputs, NumberOfOutputs, NumberOfHiddenLayers
     Biases.append([])
     Weights.append([])
     for Output in range(NumberOfOutputs):
-        #Biases[BiasesLastIndex].append(np.random.randn())
         Biases[BiasesLastIndex].append(random.uniform(-1.0, 1.0))
         Weights[WeightsLastIndex].append([])
         for f in range(NeuronsInLayer):
-            #Weights[WeightsLastIndex][Output].append(np.random.randn())
             Weights[WeightsLastIndex][Output].append(random.uniform(-1.0, 1.0))
 
     return Weights, Biases
@@ -257,7 +221,6 @@ def SortPopulation(Population):
 
         TempList.insert(Index, NewNetwork)
 
-    #Population = TempList
     return TempList
 
 
@@ -347,96 +310,3 @@ def Mutate(Population):
             for Neuron in range(len(Child.Biases[Layer])):
                 if (random.uniform(0.0, 1.0) < MutationRate):
                     Child.Biases[Layer][Neuron] += random.uniform(-MutationRange, MutationRange)
-
-
-
-"""
-def SortPopulation(Population):
-    TempList = []
-    for NewNetwork in Population:
-        Minimum = 0
-        Maximum = len(TempList) - 1
-        Index = int(len(TempList) / 2)
-        if (Maximum > 0):
-            while True:
-                if NewNetwork.Outputs[0] < TempList[Index].Outputs[0]:
-                    Maximum = Index
-                    Index = int(Index - (Index - Minimum) / 2)
-                elif NewNetwork.Outputs[0] > TempList[Index].Outputs[0]:
-                    Minimum = Index
-                    Index = int(Index + (Maximum - Index) / 2)
-                else:
-                    if (NewNetwork.LengthOfPath > TempList[Index].LengthOfPath):
-                        while Index < len(TempList) and NewNetwork.Outputs[0] == TempList[Index].Outputs[0] and NewNetwork.LengthOfPath > TempList[Index].LengthOfPath:
-                            Index += 1
-                    elif (NewNetwork.LengthOfPath < TempList[Index].LengthOfPath):
-                        while Index > 0 and NewNetwork.Outputs[0] == TempList[Index].Outputs[0] and NewNetwork.LengthOfPath < TempList[Index].LengthOfPath:
-                            Index -= 1
-                    break
-
-                if (Index in (Minimum, Maximum)):
-                    if (NewNetwork.Outputs[0] > TempList[Maximum].Outputs[0] or (NewNetwork.Outputs[0] == TempList[Maximum].Outputs[0] and NewNetwork.LengthOfPath > TempList[Maximum].LengthOfPath)):
-                        Index = Maximum + 1
-                    elif (NewNetwork.Outputs[0] > TempList[Minimum].Outputs[0] or (NewNetwork.Outputs[0] == TempList[Minimum].Outputs[0] and NewNetwork.LengthOfPath > TempList[Minimum].LengthOfPath)):
-                        Index = Maximum
-                    else:
-                        Index = Minimum               
-                    break
-
-        elif (Maximum == 0):
-            if (NewNetwork.Outputs[0] > TempList[Minimum].Outputs[0] or (NewNetwork.Outputs[0] == TempList[Minimum].Outputs[0] and NewNetwork.LengthOfPath > TempList[Minimum].LengthOfPath)):
-                Index = 1    
-
-        TempList.insert(Index, NewNetwork)
-
-    #Population = TempList
-    return TempList
-
-"""
-
-
-
-
-
-
-
-
-"""
-
-def AddToNeuralNetworkList(NewNetwork, ListOfNetworks):
-    Minimum = 0
-    Maximum = len(ListOfNetworks) - 1
-    Index = int(len(ListOfNetworks) / 2)
-    if (Maximum > 0):
-        while True:
-            if NewNetwork.Outputs[0] < ListOfNetworks[Index].Outputs[0]:
-                Maximum = Index
-                Index = int(Index - (Index - Minimum) / 2)
-            elif NewNetwork.Outputs[0] > ListOfNetworks[Index].Outputs[0]:
-                Minimum = Index
-                Index = int(Index + (Maximum - Index) / 2)
-            else:
-                if (NewNetwork.LengthOfPath > ListOfNetworks[Index].LengthOfPath):
-                    while Index < len(ListOfNetworks) and NewNetwork.Outputs[0] == ListOfNetworks[Index].Outputs[0] and NewNetwork.LengthOfPath > ListOfNetworks[Index].LengthOfPath:
-                        Index += 1
-                elif (NewNetwork.LengthOfPath < ListOfNetworks[Index].LengthOfPath):
-                    while Index > 0 and NewNetwork.Outputs[0] == ListOfNetworks[Index].Outputs[0] and NewNetwork.LengthOfPath < ListOfNetworks[Index].LengthOfPath:
-                        Index -= 1
-                break
-
-            if (Index in (Minimum, Maximum)):
-                if (NewNetwork.Outputs[0] > ListOfNetworks[Maximum].Outputs[0] or (NewNetwork.Outputs[0] == ListOfNetworks[Maximum].Outputs[0] and NewNetwork.LengthOfPath > ListOfNetworks[Maximum].LengthOfPath)):
-                    Index = Maximum + 1
-                elif (NewNetwork.Outputs[0] > ListOfNetworks[Minimum].Outputs[0] or (NewNetwork.Outputs[0] == ListOfNetworks[Minimum].Outputs[0] and NewNetwork.LengthOfPath > ListOfNetworks[Minimum].LengthOfPath)):
-                    Index = Maximum
-                else:
-                    Index = Minimum               
-                break
-
-    elif (Maximum == 0):
-        if (NewNetwork.Outputs[0] > ListOfNetworks[Minimum].Outputs[0] or (NewNetwork.Outputs[0] == ListOfNetworks[Minimum].Outputs[0] and NewNetwork.LengthOfPath > ListOfNetworks[Minimum].LengthOfPath)):
-            Index = 1    
-
-    ListOfNetworks.insert(Index, NewNetwork)
-
-"""
