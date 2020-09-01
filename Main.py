@@ -17,6 +17,8 @@ Displacement = [[int(DisplayWidth / 4), int(DisplayHeight / 4)],
 pygame.init()
 Window = pygame.display.set_mode((DisplayWidth, DisplayHeight))
 pygame.display.set_caption("AI Labb 2, Map 1")
+
+#MapNumber = str(2)
 Map = open("Map" + MapNumber + ".txt", "r")
 lines = Map.readlines()
 Map.close()
@@ -47,6 +49,7 @@ class AStar:
         TotalDistance = self.DistanceToGoal(StartCoordinates[0], StartCoordinates[1])
         Tiles[StartCoordinates[1]][StartCoordinates[0]] = ["S", 0, TotalDistance, TotalDistance, "NULL", "Unknown"]
         self.ClosedList.append([StartCoordinates[0], StartCoordinates[1]])
+        self.PathLength = 0
 
     def DistanceToGoal(self, X, Y):
         xDistance = abs(GoalCoordinates[0] - X)
@@ -119,7 +122,11 @@ class AStar:
 
         while (self.CurrentCoordinates != StartCoordinates):
             Path.insert(0, self.CurrentCoordinates)
-            pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[0][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[0][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
+            pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[0][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[0][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))           
+            if (self.CurrentCoordinates[0] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][0] and self.CurrentCoordinates[1] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][1]):
+                self.PathLength += 14
+            else:
+                self.PathLength += 10 
             self.CurrentCoordinates = Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4]
         
         Path.insert(0, self.CurrentCoordinates)
@@ -137,6 +144,7 @@ class BreadthFirst:
         self.CurrentCoordinates = StartCoordinates
         self.CurrentList.append(self.CurrentCoordinates)
         Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][5] = "Visited"
+        self.PathLength = 0
 
 
     def CheckTile(self, BaseX, BaseY):
@@ -195,7 +203,12 @@ class BreadthFirst:
 
         while (self.CurrentCoordinates != StartCoordinates):
             pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[1][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[1][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
+            if (self.CurrentCoordinates[0] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][0] and self.CurrentCoordinates[1] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][1]):
+                self.PathLength += 14
+            else:
+                self.PathLength += 10 
             self.CurrentCoordinates = Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4]
+
         pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[1][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[1][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
 
 
@@ -205,6 +218,7 @@ class DepthFirst:
     def __init__(self, StartCoordinates):
         self.CurrentCoordinates = StartCoordinates
         Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][5] = "Visited2"
+        self.PathLength = 0
 
 
     def CheckTile(self, BaseX, BaseY):      
@@ -246,7 +260,12 @@ class DepthFirst:
 
         while (self.CurrentCoordinates != StartCoordinates):
             pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[2][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[2][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
+            if (self.CurrentCoordinates[0] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][0] and self.CurrentCoordinates[1] != Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4][1]):
+                self.PathLength += 14
+            else:
+                self.PathLength += 10          
             self.CurrentCoordinates = Tiles[self.CurrentCoordinates[1]][self.CurrentCoordinates[0]][4]
+
         pygame.draw.rect(Window, (255, 0, 0), (int(Displacement[2][0] - DisplacementX + TileSize * self.CurrentCoordinates[0] + SmallTile / 2), int(Displacement[2][1] - DisplacementY + TileSize * self.CurrentCoordinates[1] + SmallTile / 2), SmallTile, SmallTile))
 
 
